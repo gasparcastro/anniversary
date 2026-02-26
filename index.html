@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Our Memory 💞</title>
+  <style>
+      * { box-sizing: border-box; }
+      
+      body, html {
+        margin: 0; padding: 0;
+        height: 100%; width: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        background: radial-gradient(circle at center, #ffd6e0 0%, #f0b3d1 100%);
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        height: 100dvh;
+      }
+
+      /* Quiz */
+      .quiz-screen {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+        display: flex; align-items: center; justify-content: center; z-index: 100;
+      }
+      .quiz-box { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 85%; max-width: 320px; }
+      .quiz-box button { width: 100%; margin: 8px 0; padding: 14px; border-radius: 12px; border: none; background: #ff69b4; color: white; font-weight: bold; font-size: 1rem; }
+
+      /* Corazón */
+      .scene { position: relative; width: 220px; height: 220px; perspective: 1000px; cursor: pointer; }
+      .heart-base { position: absolute; width: 100%; height: 100%; background: url('images/base-heart.png') no-repeat center/contain; }
+      .heart-lid { position: absolute; width: 100%; height: 100%; background: url('https://images.emojiterra.com/google/noto-emoji/unicode-15/color/512px/1f49d.png') no-repeat center/contain; transform-origin: top center; transition: 1s; }
+      .heart-lid.open { transform: rotateX(-120deg); }
+      .zoom { transform: scale(12); opacity: 0; transition: 1.5s; }
+
+      /* Pantalla de contenido corregida */
+      .inside { 
+        position: fixed; inset: 0; background: white; 
+        display: flex; flex-direction: column; 
+        align-items: center; 
+        opacity: 0; pointer-events: none; transition: 1s; z-index: 50;
+        height: 100dvh; 
+      }
+      .inside.active { opacity: 1; pointer-events: all; }
+      
+      h2 { color: #ff69b4; margin: 20px 0 10px 0; font-size: 1.5rem; }
+
+      /* Carrusel ocupa el espacio central */
+      .carousel { 
+        position: relative; 
+        width: 100%; 
+        flex: 1; /* Ocupa todo el espacio entre el título y el botón close */
+        overflow: hidden; 
+        display: flex; 
+        align-items: center; 
+      }
+      
+      .track { display: flex; width: 100%; height: 100%; transition: transform 0.5s ease-in-out; }
+      
+      /* Slide como columna para que la frase vaya abajo de la imagen */
+      .slide { 
+        flex: 0 0 100%; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center;
+        padding: 0 20px;
+      }
+      
+      .slide img { 
+        width: 100%; 
+        max-width: 350px; 
+        max-height: 55vh; /* Ajustado para dejar espacio a la frase */
+        object-fit: cover; 
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      }
+
+      .slide p {
+        margin-top: 20px;
+        color: #b21f66;
+        font-size: 1.1rem;
+        text-align: center;
+        line-height: 1.4;
+        max-width: 300px;
+      }
+
+      /* Botones de navegación */
+      .nav-btn { position: absolute; top: 0; bottom: 0; width: 20%; border: none; background: transparent; font-size: 3rem; color: rgba(0,0,0,0.1); z-index: 60; outline: none; -webkit-tap-highlight-color: transparent; }
+      .prev { left: 0; }
+      .next { right: 0; }
+      .nav-btn:disabled { opacity: 0; cursor: default; }
+
+      /* Botón de cierre abajo siempre */
+      .close-btn {
+        margin: 20px 0;
+        border: none;
+        background: #f0f0f0;
+        color: #888;
+        padding: 12px 25px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+  </style>
+</head>
+<body>
+
+  <div class="quiz-screen" id="qs">
+    <div class="quiz-box">
+      <p style="margin-bottom: 20px; color: #555; font-weight: bold;">Where was our first date?</p>
+      <button onclick="unlock(false)">The Park</button>
+      <button onclick="unlock(true)">The Mall</button>
+    </div>
+  </div>
+
+  <div class="scene" id="heart" onclick="openHeart()">
+    <div class="heart-base"></div>
+    <div class="heart-lid" id="lid"></div>
+  </div>
+
+  <div class="inside" id="content">
+    <h2>Our Moments</h2>
+    
+    <div class="carousel">
+      <button class="nav-btn prev" id="btnPrev" onclick="move(-1)" disabled>‹</button>
+      <button class="nav-btn next" id="btnNext" onclick="move(1)">›</button>
+      
+      <div class="track" id="track">
+        <div class="slide">
+            <img src="images/december.jpg">
+            <p>"You’re my favorite person, my best feeling, and my forever."</p>
+        </div>
+
+        <div class="slide">
+            <img src="images/january.jpg">
+            <p>"With you, every moment feels like magic."</p>
+        </div>
+      </div>
+    </div>
+
+    <button class="close-btn" onclick="location.reload()">Close Vault</button>
+  </div>
+
+  <script>
+    let unlocked = false;
+    let index = 0;
+
+    function unlock(correct) {
+      if(correct) {
+        document.getElementById('qs').style.display = 'none';
+        unlocked = true;
+      } else { alert("Wrong answer! 💔"); }
+    }
+
+    function openHeart() {
+      if(!unlocked) return;
+      document.getElementById('lid').classList.add('open');
+      setTimeout(() => {
+        document.getElementById('heart').classList.add('zoom');
+        setTimeout(() => { 
+          document.getElementById('content').classList.add('active'); 
+        }, 800);
+      }, 600);
+    }
+
+    function move(step) {
+      const track = document.getElementById('track');
+      index += step;
+      track.style.transform = `translateX(-${index * 100}%)`;
+      document.getElementById('btnPrev').disabled = (index === 0);
+      document.getElementById('btnNext').disabled = (index === 1);
+    }
+  </script>
+</body>
+</html>
